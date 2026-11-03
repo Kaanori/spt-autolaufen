@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <AssemblyName>AutoLaufen</AssemblyName>
+    <RootNamespace>AutoLaufen</RootNamespace>
+    <Version>1.2.0</Version>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AssemblyTitle>Auto-Laufen</AssemblyTitle>
+    <Description>Laeuft auf Tastendruck dauerhaft vorwaerts</Description>
+    <GameDir Condition="'$(GameDir)' == ''">/mnt/nvmegames/Games/SPT-416</GameDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="src/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Alles liegt schon im Spiel - nichts davon mitkopieren (Private=false). -->
+    <Reference Include="Assembly-CSharp" Publicize="true"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <!-- Input.GetKey* steckt seit Unity 2019 in einem eigenen Modul. -->
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
+    <!-- GUI.Label fuer den Hinweis am Bildrand. -->
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
+    <!-- FontStyle (fetter Hinweistext) steckt im TextRendering-Modul. -->
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
+    <!-- Comfort: Singleton<GameWorld>. -->
+    <Reference Include="Comfort"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/Comfort.dll</HintPath><Private>false</Private></Reference>
+    <!-- GamePlayerOwner haengt ueber MonoBehaviour an Odin - ohne diese
+         zwei Verweise meldet der Compiler CS0012 (SerializedMonoBehaviour). -->
+    <Reference Include="Sirenix.Serialization"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/Sirenix.Serialization.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Sirenix.Utilities"><HintPath>$(GameDir)/EscapeFromTarkov_Data/Managed/Sirenix.Utilities.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx"><HintPath>$(GameDir)/BepInEx/core/BepInEx.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(GameDir)/BepInEx/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <!-- Nach dem Bauen direkt ins Spiel kopieren. -->
+  <Target Name="InsSpiel" AfterTargets="Build" Condition="'$(Installieren)' == 'true'">
+    <Copy SourceFiles="$(TargetPath)"
+          DestinationFolder="$(GameDir)/BepInEx/plugins"
+          Condition="Exists('$(GameDir)/BepInEx/plugins')" />
+    <Message Importance="high" Text="-> $(GameDir)/BepInEx/plugins/AutoLaufen.dll (Spiel neu starten)" />
+  </Target>
+
+</Project>
